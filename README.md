@@ -12,6 +12,6 @@ the video.
 ```
 $ make
 $ ./cache
-$ ./spectre
+$ ./spectrev1
 ```
 

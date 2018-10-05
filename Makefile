@@ -1,6 +1,6 @@
 
 CXX= c++
-CXXFLAGS= -Wall --std=c++17
+CXXFLAGS= -Wall --std=c++17 -O3
 
 all: cache spectrev1
 

